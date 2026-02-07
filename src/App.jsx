@@ -7,8 +7,8 @@ import Menu from './components/Menu';
 import { initDB, saveBubbles, loadBubbles } from './utils/storage';
 
 // Size calculation constants
-const MIN_SIZE = 30;
-const MAX_SIZE = 100;
+const MIN_SIZE = 15;
+const MAX_SIZE = 50;
 const MAX_HOURS = 168; // 1 week
 
 // Calculate bubble size based on time since last activity (logarithmic growth)
