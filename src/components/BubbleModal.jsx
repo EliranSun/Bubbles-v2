@@ -55,6 +55,10 @@ export default function BubbleModal({ bubble, onSave, onClose }) {
   const removeHistoryEntry = (index) => {
     setHistory(prev => prev.filter((_, i) => i !== index));
   };
+
+  const addHistoryEntry = () => {
+    setHistory(prev => [...prev, Date.now()]);
+  };
   const title = bubble?.name || 'New Activity';
 
   return (
@@ -145,9 +149,20 @@ export default function BubbleModal({ bubble, onSave, onClose }) {
 
           {/* History section */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              History {history.length > 0 && `(${history.length} total)`}
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-gray-700">
+                History {history.length > 0 && `(${history.length} total)`}
+              </label>
+              <button
+                onClick={addHistoryEntry}
+                className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add Record
+              </button>
+            </div>
             {history.length > 0 ? (
               <div className="bg-gray-50 rounded-xl border border-gray-200 max-h-48 overflow-y-auto">
                 {[...history].reverse().map((timestamp, reversedIndex) => {
