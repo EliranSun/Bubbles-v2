@@ -75,6 +75,7 @@ export default function Bubble({
       restitution: 0.9,
       friction: 0.01,
       frictionAir: 0.002,
+      inertia: Infinity,
       label: id
     });
 
@@ -210,7 +211,7 @@ export default function Bubble({
         style={{
           width: diameter,
           height: diameter,
-          transform: `rotate(${pos.angle}rad) ${isPressed ? 'scale(0.95)' : 'scale(1)'}`,
+          transform: isPressed ? 'scale(0.95)' : 'scale(1)',
           borderRadius: '50%',
           overflow: 'hidden',
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3), inset 0 -2px 10px rgba(0, 0, 0, 0.1)'
