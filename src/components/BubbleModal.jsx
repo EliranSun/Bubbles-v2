@@ -21,11 +21,24 @@ function formatHistoryDate(timestamp) {
   });
 }
 
+// Format date/time for the input defaults
+function toLocalDateTimeStrings(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  const h = String(date.getHours()).padStart(2, '0');
+  const min = String(date.getMinutes()).padStart(2, '0');
+  return { date: `${y}-${m}-${d}`, time: `${h}:${min}` };
+}
+
 export default function BubbleModal({ bubble, onSave, onClose }) {
   const [name, setName] = useState(bubble?.name || '');
   const [image, setImage] = useState(bubble?.image || null);
   const [history, setHistory] = useState(bubble?.history || []);
   const [isResizing, setIsResizing] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedTime, setSelectedTime] = useState('');
   const fileInputRef = useRef(null);
 
   const handleImageUpload = async (e) => {
@@ -56,8 +69,25 @@ export default function BubbleModal({ bubble, onSave, onClose }) {
     setHistory(prev => prev.filter((_, i) => i !== index));
   };
 
-  const addHistoryEntry = () => {
+  const openDatePicker = () => {
+    const now = new Date();
+    const defaults = toLocalDateTimeStrings(now);
+    setSelectedDate(defaults.date);
+    setSelectedTime(defaults.time);
+    setShowDatePicker(true);
+  };
+
+  const confirmDatePicker = () => {
+    const timestamp = new Date(`${selectedDate}T${selectedTime}`).getTime();
+    if (!isNaN(timestamp)) {
+      setHistory(prev => [...prev, timestamp]);
+    }
+    setShowDatePicker(false);
+  };
+
+  const addNow = () => {
     setHistory(prev => [...prev, Date.now()]);
+    setShowDatePicker(false);
   };
   const title = bubble?.name || 'New Activity';
 
@@ -154,7 +184,7 @@ export default function BubbleModal({ bubble, onSave, onClose }) {
                 History {history.length > 0 && `(${history.length} total)`}
               </label>
               <button
-                onClick={addHistoryEntry}
+                onClick={openDatePicker}
                 className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -223,6 +253,57 @@ export default function BubbleModal({ bubble, onSave, onClose }) {
           </button>
         </div>
       </div>
+
+      {/* Date Selection Dialog */}
+      {showDatePicker && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs mx-4 overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-800">Select Date & Time</h3>
+            </div>
+            <div className="px-5 py-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
+                <input
+                  type="time"
+                  value={selectedTime}
+                  onChange={(e) => setSelectedTime(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 px-5 py-4 bg-gray-50 border-t border-gray-100">
+              <button
+                onClick={() => setShowDatePicker(false)}
+                className="flex-1 px-3 py-2.5 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-100 transition-colors text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={addNow}
+                className="flex-1 px-3 py-2.5 bg-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-300 transition-colors text-sm"
+              >
+                Now
+              </button>
+              <button
+                onClick={confirmDatePicker}
+                className="flex-1 px-3 py-2.5 bg-blue-500 text-white rounded-xl font-medium hover:bg-blue-600 transition-colors text-sm"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
