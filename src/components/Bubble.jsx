@@ -1,0 +1,227 @@
+import { useEffect, useRef, useMemo, useCallback, useState } from 'react';
+import Matter from 'matter-js';
+import GeoPattern from 'geopattern';
+import { useBubbleWorld } from './BubbleWorld';
+
+// Convert HSL to Hex color
+function hslToHex(h, s, l) {
+  s /= 100;
+  l /= 100;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n) => {
+    const k = (n + h / 30) % 12;
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+// Format relative time
+function getRelativeTime(timestamp) {
+  if (!timestamp) return null;
+  const now = Date.now();
+  const diff = now - timestamp;
+
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  const weeks = Math.floor(days / 7);
+  const months = Math.floor(days / 30);
+  const years = Math.floor(days / 365);
+
+  if (seconds < 60) return 'just now';
+  if (minutes < 60) return minutes === 1 ? '1 min ago' : `${minutes} mins ago`;
+  if (hours < 24) return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
+  if (days === 0) return 'today';
+  if (days === 1) return 'yesterday';
+  if (days < 7) return `${days} days ago`;
+  if (weeks < 4) return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
+  if (months < 12) return months === 1 ? '1 month ago' : `${months} months ago`;
+  return years === 1 ? '1 year ago' : `${years} years ago`;
+}
+
+export default function Bubble({
+  id,
+  size = 50,
+  initialX,
+  initialY,
+  name,
+  lastActivity,
+  image,
+  onOpenModal,
+  onActivity
+}) {
+  const { registerBody, unregisterBody, getBodyPosition, scaleBody } = useBubbleWorld();
+  const bodyRef = useRef(null);
+  const tapStartRef = useRef(null);
+  const prevSizeRef = useRef(size);
+  const [isPressed, setIsPressed] = useState(false);
+
+  // Generate geometric pattern once (used as fallback when no image)
+  const patternUrl = useMemo(() => {
+    const hue = Math.floor(Math.random() * 360);
+    const hexColor = hslToHex(hue, 70, 60);
+    const pattern = GeoPattern.generate(id || String(Math.random()), {
+      baseColor: hexColor
+    });
+    return pattern.toDataUrl();
+  }, [id]);
+
+  useEffect(() => {
+    // Create the physics body
+    const body = Matter.Bodies.circle(initialX, initialY, size, {
+      restitution: 0.9,
+      friction: 0.01,
+      frictionAir: 0.002,
+      label: id
+    });
+
+    // Give it a random initial velocity
+    Matter.Body.setVelocity(body, {
+      x: (Math.random() - 0.5) * 6,
+      y: (Math.random() - 0.5) * 6
+    });
+
+    bodyRef.current = body;
+    prevSizeRef.current = size;
+    registerBody(id, body);
+
+    return () => {
+      unregisterBody(id);
+    };
+  }, [id, initialX, initialY, registerBody, unregisterBody]);
+
+  // Handle size changes (scale the physics body)
+  useEffect(() => {
+    if (bodyRef.current && prevSizeRef.current !== size) {
+      const scaleFactor = size / prevSizeRef.current;
+      scaleBody?.(id, scaleFactor);
+      prevSizeRef.current = size;
+    }
+  }, [id, size, scaleBody]);
+
+  // Tap detection for activity logging
+  const handlePointerDown = useCallback((e) => {
+    setIsPressed(true);
+    tapStartRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      time: Date.now()
+    };
+  }, []);
+
+  const handlePointerUp = useCallback((e) => {
+    setIsPressed(false);
+    if (!tapStartRef.current) return;
+
+    const dx = e.clientX - tapStartRef.current.x;
+    const dy = e.clientY - tapStartRef.current.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const duration = Date.now() - tapStartRef.current.time;
+
+    // It's a tap if moved less than 10px and took less than 300ms
+    if (distance < 10 && duration < 300) {
+      onActivity?.(id);
+    }
+
+    tapStartRef.current = null;
+  }, [id, onActivity]);
+
+  const handlePointerLeave = useCallback(() => {
+    setIsPressed(false);
+    tapStartRef.current = null;
+  }, []);
+
+  // Get current position from physics body
+  const pos = getBodyPosition(id);
+  if (!pos) return null;
+
+  const diameter = size * 2;
+  const relativeTime = getRelativeTime(lastActivity);
+
+  return (
+    <div
+      className="absolute select-none"
+      style={{
+        left: pos.x - size,
+        top: pos.y - size,
+        width: diameter,
+        height: diameter
+      }}
+    >
+      {/* Label below bubble - clickable to open modal */}
+      <button
+        onClick={() => onOpenModal?.(id)}
+        className="absolute left-1/2 text-center whitespace-nowrap pointer-events-auto cursor-pointer hover:opacity-80 transition-opacity flex flex-col items-center gap-0.5 min-w-[40px] min-h-[40px] justify-center"
+        style={{
+          top: diameter + 4,
+          transform: 'translateX(-50%)'
+        }}
+      >
+        {name && (
+          <div className="text-white font-medium text-sm drop-shadow-lg">
+            {name}
+          </div>
+        )}
+        {relativeTime && (
+          <div className="text-white/60 text-xs drop-shadow-lg">
+            {relativeTime}
+          </div>
+        )}
+        {/* Info icon - always visible as tap target */}
+        {!name && !relativeTime && (
+          <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+            <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        )}
+      </button>
+
+      {/* Bubble - tappable for activity */}
+      <div
+        className="pointer-events-auto cursor-pointer transition-transform duration-150"
+        style={{
+          width: diameter,
+          height: diameter,
+          transform: `rotate(${pos.angle}rad) ${isPressed ? 'scale(0.95)' : 'scale(1)'}`,
+          borderRadius: '50%',
+          overflow: 'hidden',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3), inset 0 -2px 10px rgba(0, 0, 0, 0.1)'
+        }}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={handlePointerLeave}
+      >
+        {/* Background - either uploaded image or geometric pattern */}
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: image ? `url(${image})` : patternUrl,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}
+        />
+
+        {/* Glossy overlay */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: 'radial-gradient(ellipse 50% 30% at 30% 20%, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.3) 40%, transparent 70%)',
+            pointerEvents: 'none'
+          }}
+        />
+
+        {/* Edge highlight */}
+        <div
+          className="absolute inset-0 rounded-full"
+          style={{
+            boxShadow: 'inset 0 0 20px rgba(255, 255, 255, 0.3), inset 0 0 3px rgba(255, 255, 255, 0.5)',
+            pointerEvents: 'none'
+          }}
+        />
+      </div>
+    </div>
+  );
+}
