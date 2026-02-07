@@ -55,6 +55,7 @@ export default function Bubble({
   const { registerBody, unregisterBody, getBodyPosition, scaleBody } = useBubbleWorld();
   const bodyRef = useRef(null);
   const tapStartRef = useRef(null);
+  const labelTapRef = useRef(null);
   const prevSizeRef = useRef(size);
   const [isPressed, setIsPressed] = useState(false);
 
@@ -133,6 +134,28 @@ export default function Bubble({
     tapStartRef.current = null;
   }, []);
 
+  // Label tap detection using pointer events (works on mobile where
+  // Matter.js preventDefault on touch events blocks click synthesis)
+  const handleLabelPointerDown = useCallback((e) => {
+    labelTapRef.current = { x: e.clientX, y: e.clientY, time: Date.now() };
+  }, []);
+
+  const handleLabelPointerUp = useCallback((e) => {
+    // Let onClick handle mouse interactions to avoid double-firing
+    if (e.pointerType === 'mouse') return;
+    if (!labelTapRef.current) return;
+
+    const dx = e.clientX - labelTapRef.current.x;
+    const dy = e.clientY - labelTapRef.current.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const duration = Date.now() - labelTapRef.current.time;
+
+    if (distance < 10 && duration < 500) {
+      onOpenModal?.(id);
+    }
+    labelTapRef.current = null;
+  }, [id, onOpenModal]);
+
   // Get current position from physics body
   const pos = getBodyPosition(id);
   if (!pos) return null;
@@ -153,6 +176,8 @@ export default function Bubble({
       {/* Label below bubble - clickable to open modal */}
       <button
         onClick={() => onOpenModal?.(id)}
+        onPointerDown={handleLabelPointerDown}
+        onPointerUp={handleLabelPointerUp}
         className="absolute left-1/2 text-center whitespace-nowrap pointer-events-auto cursor-pointer hover:opacity-80 transition-opacity flex flex-col items-center gap-0.5 min-w-[40px] min-h-[40px] justify-center"
         style={{
           top: diameter + 4,
