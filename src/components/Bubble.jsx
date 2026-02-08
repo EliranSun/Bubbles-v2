@@ -75,17 +75,17 @@ export default function Bubble({
   useEffect(() => {
     // Create the physics body
     const body = Matter.Bodies.circle(initialX, initialY, size, {
-      restitution: 0.9,
-      friction: 0.01,
-      frictionAir: 0.002,
+      restitution: 0.3,
+      friction: 0.1,
+      frictionAir: 0.04,
       inertia: Infinity,
       label: id
     });
 
-    // Give it a random initial velocity
+    // Give it a gentle random initial velocity
     Matter.Body.setVelocity(body, {
-      x: (Math.random() - 0.5) * 6,
-      y: (Math.random() - 0.5) * 6
+      x: (Math.random() - 0.5) * 2,
+      y: (Math.random() - 0.5) * 2
     });
 
     bodyRef.current = body;

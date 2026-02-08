@@ -72,12 +72,13 @@ export default function BubbleWorld({ children }) {
 
     Matter.Composite.add(engine.world, walls);
 
-    // Create mouse constraint for dragging
+    // Create mouse constraint for dragging (gentle stiffness for smooth movement)
     const mouse = Matter.Mouse.create(container);
     const mouseConstraint = Matter.MouseConstraint.create(engine, {
       mouse: mouse,
       constraint: {
-        stiffness: 0.2,
+        stiffness: 0.05,
+        damping: 0.3,
         render: { visible: false }
       }
     });
