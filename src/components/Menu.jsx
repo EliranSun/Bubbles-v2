@@ -40,34 +40,46 @@ export default function Menu({ onExport, onImport }) {
 
   return (
     <div ref={menuRef} className="fixed top-6 right-6 z-40">
-      {/* Hamburger Button */}
+      {/* Menu Button - glass effect */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-12 h-12 bg-white/90 hover:bg-white rounded-xl shadow-lg flex flex-col items-center justify-center gap-1.5 transition-all"
+        className="w-11 h-11 rounded-xl flex flex-col items-center justify-center gap-1 transition-all backdrop-blur-md"
+        style={{
+          background: isOpen ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.08)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)'
+        }}
       >
-        <span className="w-5 h-0.5 bg-gray-700 rounded-full" />
-        <span className="w-5 h-0.5 bg-gray-700 rounded-full" />
-        <span className="w-5 h-0.5 bg-gray-700 rounded-full" />
+        <span className="w-4 h-[1.5px] bg-white/60 rounded-full transition-all" />
+        <span className="w-4 h-[1.5px] bg-white/60 rounded-full transition-all" />
+        <span className="w-4 h-[1.5px] bg-white/60 rounded-full transition-all" />
       </button>
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-14 right-0 bg-white rounded-xl shadow-xl overflow-hidden min-w-40 border border-gray-100">
+        <div
+          className="absolute top-14 right-0 rounded-xl overflow-hidden min-w-44 backdrop-blur-xl"
+          style={{
+            background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            boxShadow: '0 15px 40px rgba(0, 0, 0, 0.4)'
+          }}
+        >
           <button
             onClick={handleExport}
-            className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors"
+            className="w-full px-4 py-3 text-left text-white/70 hover:bg-white/5 flex items-center gap-3 transition-all text-sm font-medium"
           >
-            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            <svg className="w-4.5 h-4.5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
             Export Data
           </button>
           <button
             onClick={handleImportClick}
-            className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors border-t border-gray-100"
+            className="w-full px-4 py-3 text-left text-white/70 hover:bg-white/5 flex items-center gap-3 transition-all border-t border-white/5 text-sm font-medium"
           >
-            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            <svg className="w-4.5 h-4.5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
             </svg>
             Import Data
           </button>

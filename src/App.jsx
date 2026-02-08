@@ -157,8 +157,19 @@ function App() {
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 bg-linear-to-b from-slate-900 to-slate-800 flex items-center justify-center">
-        <div className="text-white/50">Loading...</div>
+      <div className="fixed inset-0 flex items-center justify-center"
+        style={{ background: 'linear-gradient(135deg, #0a0e1a 0%, #0f1629 25%, #111827 50%, #0d1321 75%, #0a0e1a 100%)' }}
+      >
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-full animate-glow-pulse"
+            style={{
+              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+              boxShadow: '0 0 40px rgba(99, 102, 241, 0.3)',
+              filter: 'blur(1px)'
+            }}
+          />
+          <div className="text-white/30 text-sm font-light tracking-wider">Loading</div>
+        </div>
       </div>
     );
   }
@@ -186,6 +197,31 @@ function App() {
           );
         })}
       </BubbleWorld>
+
+      {/* Empty state */}
+      {bubbles.length === 0 && (
+        <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-10">
+          <div className="text-center px-8">
+            <div className="animate-float mb-6 inline-block">
+              <div className="w-20 h-20 rounded-full mx-auto flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%)',
+                  border: '1px solid rgba(99, 102, 241, 0.2)',
+                  boxShadow: '0 0 40px rgba(99, 102, 241, 0.1)'
+                }}
+              >
+                <svg className="w-8 h-8 text-indigo-400/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
+                </svg>
+              </div>
+            </div>
+            <h3 className="text-white/50 text-lg font-medium tracking-wide mb-2">No bubbles yet</h3>
+            <p className="text-white/25 text-sm font-light max-w-xs mx-auto leading-relaxed">
+              Tap the + button to create your first activity bubble
+            </p>
+          </div>
+        </div>
+      )}
 
       <Menu onExport={handleExport} onImport={handleImport} />
       <AddBubbleButton onClick={addBubble} />

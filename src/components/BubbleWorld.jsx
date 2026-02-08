@@ -119,9 +119,50 @@ export default function BubbleWorld({ children }) {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800"
-      style={{ touchAction: 'none' }}
+      className="fixed inset-0 overflow-hidden"
+      style={{
+        touchAction: 'none',
+        background: 'linear-gradient(135deg, #0a0e1a 0%, #0f1629 25%, #111827 50%, #0d1321 75%, #0a0e1a 100%)'
+      }}
     >
+      {/* Ambient background orbs */}
+      <div
+        className="absolute rounded-full blur-[120px] opacity-20 animate-glow-pulse"
+        style={{
+          width: 400,
+          height: 400,
+          top: '10%',
+          left: '15%',
+          background: 'radial-gradient(circle, #6366f1 0%, transparent 70%)',
+          pointerEvents: 'none'
+        }}
+      />
+      <div
+        className="absolute rounded-full blur-[120px] opacity-15"
+        style={{
+          width: 350,
+          height: 350,
+          bottom: '15%',
+          right: '10%',
+          background: 'radial-gradient(circle, #8b5cf6 0%, transparent 70%)',
+          pointerEvents: 'none',
+          animation: 'glow-pulse 3s ease-in-out infinite 1s'
+        }}
+      />
+      <div
+        className="absolute rounded-full blur-[100px] opacity-10"
+        style={{
+          width: 300,
+          height: 300,
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          background: 'radial-gradient(circle, #3b82f6 0%, transparent 70%)',
+          pointerEvents: 'none',
+          animation: 'glow-pulse 4s ease-in-out infinite 0.5s'
+        }}
+      />
+
       <BubbleWorldContext.Provider value={{ registerBody, unregisterBody, getBodyPosition, scaleBody, tick }}>
         {engineRef.current && children}
       </BubbleWorldContext.Provider>
