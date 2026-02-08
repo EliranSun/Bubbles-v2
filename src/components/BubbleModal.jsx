@@ -1,5 +1,16 @@
 import { useState, useRef } from 'react';
 import { resizeImage } from '../utils/imageUtils';
+import ImageCropper from './ImageCropper';
+
+// Category options with colors
+export const CATEGORIES = {
+  Family: '#F472B6',    // Pink
+  Friends: '#60A5FA',   // Blue
+  Household: '#FBBF24', // Amber
+  Wife: '#F87171',      // Red/Rose
+  Creative: '#A78BFA',  // Purple
+  Health: '#34D399',    // Green
+};
 
 // Format date for history display
 function formatHistoryDate(timestamp) {
@@ -35,8 +46,10 @@ export default function BubbleModal({ bubble, onSave, onClose }) {
   const [name, setName] = useState(bubble?.name || '');
   const [image, setImage] = useState(bubble?.image || null);
   const [history, setHistory] = useState(bubble?.history || []);
+  const [category, setCategory] = useState(bubble?.category || '');
   const [isResizing, setIsResizing] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [rawImageForCrop, setRawImageForCrop] = useState(null);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const fileInputRef = useRef(null);
@@ -44,16 +57,31 @@ export default function BubbleModal({ bubble, onSave, onClose }) {
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      setIsResizing(true);
-      try {
-        const resizedImage = await resizeImage(file, 400);
-        setImage(resizedImage);
-      } catch (error) {
-        console.error('Failed to resize image:', error);
-      } finally {
-        setIsResizing(false);
-      }
+      // Read file as data URL for cropper
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setRawImageForCrop(event.target.result);
+      };
+      reader.readAsDataURL(file);
     }
+  };
+
+  const handleCropComplete = async (croppedDataUrl) => {
+    setIsResizing(true);
+    try {
+      // Resize the cropped image
+      const resizedImage = await resizeImage(croppedDataUrl, 400);
+      setImage(resizedImage);
+    } catch (error) {
+      console.error('Failed to resize image:', error);
+    } finally {
+      setIsResizing(false);
+      setRawImageForCrop(null);
+    }
+  };
+
+  const handleCropCancel = () => {
+    setRawImageForCrop(null);
   };
 
   const handleSave = () => {
@@ -61,7 +89,8 @@ export default function BubbleModal({ bubble, onSave, onClose }) {
       ...bubble,
       name: name.trim() || null,
       image,
-      history
+      history,
+      category: category || null
     });
   };
 
@@ -121,6 +150,34 @@ export default function BubbleModal({ bubble, onSave, onClose }) {
               placeholder="Enter activity name..."
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
             />
+          </div>
+
+          {/* Category dropdown */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Category
+            </label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow bg-white"
+            >
+              <option value="">No category</option>
+              {Object.entries(CATEGORIES).map(([name, color]) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+            {category && (
+              <div className="mt-2 flex items-center gap-2">
+                <div
+                  className="w-4 h-4 rounded-full"
+                  style={{ backgroundColor: CATEGORIES[category] }}
+                />
+                <span className="text-sm text-gray-500">Border color preview</span>
+              </div>
+            )}
           </div>
 
           {/* Image upload */}
@@ -303,6 +360,15 @@ export default function BubbleModal({ bubble, onSave, onClose }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Image Cropper */}
+      {rawImageForCrop && (
+        <ImageCropper
+          imageSrc={rawImageForCrop}
+          onComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+        />
       )}
     </div>
   );

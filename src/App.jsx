@@ -179,6 +179,7 @@ function App() {
               name={bubble.name}
               lastActivity={lastActivity}
               image={bubble.image}
+              category={bubble.category}
               onOpenModal={handleOpenModal}
               onActivity={logActivity}
             />

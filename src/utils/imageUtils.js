@@ -1,14 +1,12 @@
 /**
- * Resize an image file to fit within maxSize x maxSize dimensions
- * @param {File} file - The image file to resize
+ * Resize an image to fit within maxSize x maxSize dimensions
+ * @param {File|string} source - The image file or data URL to resize
  * @param {number} maxSize - Maximum width/height in pixels (default 400)
  * @returns {Promise<string>} - Base64 data URL of the resized image
  */
-export function resizeImage(file, maxSize = 400) {
+export function resizeImage(source, maxSize = 400) {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onload = (e) => {
+    const processImage = (dataUrl) => {
       const img = new Image();
 
       img.onload = () => {
@@ -37,21 +35,33 @@ export function resizeImage(file, maxSize = 400) {
         ctx.drawImage(img, 0, 0, width, height);
 
         // Export as JPEG with 80% quality
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-        resolve(dataUrl);
+        const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        resolve(resizedDataUrl);
       };
 
       img.onerror = () => {
         reject(new Error('Failed to load image'));
       };
 
-      img.src = e.target.result;
+      img.src = dataUrl;
     };
 
-    reader.onerror = () => {
-      reject(new Error('Failed to read file'));
-    };
+    // Check if source is already a data URL string
+    if (typeof source === 'string') {
+      processImage(source);
+    } else {
+      // It's a File, read it first
+      const reader = new FileReader();
 
-    reader.readAsDataURL(file);
+      reader.onload = (e) => {
+        processImage(e.target.result);
+      };
+
+      reader.onerror = () => {
+        reject(new Error('Failed to read file'));
+      };
+
+      reader.readAsDataURL(source);
+    }
   });
 }

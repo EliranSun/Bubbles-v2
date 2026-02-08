@@ -1,7 +1,9 @@
 import { useEffect, useRef, useMemo, useCallback, useState } from 'react';
 import Matter from 'matter-js';
 import GeoPattern from 'geopattern';
+import { formatDistanceToNow } from 'date-fns';
 import { useBubbleWorld } from './BubbleWorld';
+import { CATEGORIES } from './BubbleModal';
 
 // Convert HSL to Hex color
 function hslToHex(h, s, l) {
@@ -16,29 +18,10 @@ function hslToHex(h, s, l) {
   return `#${f(0)}${f(8)}${f(4)}`;
 }
 
-// Format relative time
+// Format relative time using date-fns
 function getRelativeTime(timestamp) {
   if (!timestamp) return null;
-  const now = Date.now();
-  const diff = now - timestamp;
-
-  const seconds = Math.floor(diff / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-  const weeks = Math.floor(days / 7);
-  const months = Math.floor(days / 30);
-  const years = Math.floor(days / 365);
-
-  if (seconds < 60) return 'just now';
-  if (minutes < 60) return minutes === 1 ? '1 min ago' : `${minutes} mins ago`;
-  if (hours < 24) return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
-  if (days === 0) return 'today';
-  if (days === 1) return 'yesterday';
-  if (days < 7) return `${days} days ago`;
-  if (weeks < 4) return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
-  if (months < 12) return months === 1 ? '1 month ago' : `${months} months ago`;
-  return years === 1 ? '1 year ago' : `${years} years ago`;
+  return formatDistanceToNow(timestamp, { addSuffix: true });
 }
 
 export default function Bubble({
@@ -49,6 +32,7 @@ export default function Bubble({
   name,
   lastActivity,
   image,
+  category,
   onOpenModal,
   onActivity
 }) {
@@ -214,7 +198,8 @@ export default function Bubble({
           transform: isPressed ? 'scale(0.95)' : 'scale(1)',
           borderRadius: '50%',
           overflow: 'hidden',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3), inset 0 -2px 10px rgba(0, 0, 0, 0.1)'
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3), inset 0 -2px 10px rgba(0, 0, 0, 0.1)',
+          border: category && CATEGORIES[category] ? `4px solid ${CATEGORIES[category]}` : 'none'
         }}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
