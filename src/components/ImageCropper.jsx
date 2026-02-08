@@ -51,7 +51,9 @@ export default function ImageCropper({ imageSrc, onComplete, onCancel }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[70] bg-black flex flex-col">
+    <div className="fixed inset-0 z-[70] flex flex-col"
+      style={{ background: 'linear-gradient(180deg, #0a0e1a 0%, #111827 100%)' }}
+    >
       {/* Cropper area */}
       <div className="relative flex-1">
         <Cropper
@@ -68,10 +70,13 @@ export default function ImageCropper({ imageSrc, onComplete, onCancel }) {
       </div>
 
       {/* Controls */}
-      <div className="bg-gray-900 px-6 py-4 space-y-4">
+      <div className="px-6 py-4 space-y-4" style={{
+        background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%)',
+        borderTop: '1px solid rgba(255, 255, 255, 0.05)'
+      }}>
         {/* Zoom slider */}
         <div className="flex items-center gap-4">
-          <span className="text-white/70 text-sm w-12">Zoom</span>
+          <span className="text-white/40 text-xs font-medium w-12 uppercase tracking-wider">Zoom</span>
           <input
             type="range"
             min={1}
@@ -79,7 +84,8 @@ export default function ImageCropper({ imageSrc, onComplete, onCancel }) {
             step={0.1}
             value={zoom}
             onChange={(e) => setZoom(Number(e.target.value))}
-            className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+            className="flex-1 h-1.5 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+            style={{ background: 'rgba(255, 255, 255, 0.1)' }}
           />
         </div>
 
@@ -87,13 +93,17 @@ export default function ImageCropper({ imageSrc, onComplete, onCancel }) {
         <div className="flex gap-3">
           <button
             onClick={onCancel}
-            className="flex-1 px-4 py-3 border border-gray-600 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors"
+            className="flex-1 px-4 py-3 text-white/50 rounded-xl font-medium hover:bg-white/5 transition-all border border-white/10"
           >
             Cancel
           </button>
           <button
             onClick={handleConfirm}
-            className="flex-1 px-4 py-3 bg-blue-500 text-white rounded-xl font-medium hover:bg-blue-600 transition-colors"
+            className="flex-1 px-4 py-3 text-white rounded-xl font-medium transition-all"
+            style={{
+              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+              boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)'
+            }}
           >
             Apply
           </button>

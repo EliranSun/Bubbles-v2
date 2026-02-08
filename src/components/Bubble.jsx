@@ -43,6 +43,17 @@ function getRelativeTime(timestamp) {
   return `${years} ${years === 1 ? 'year' : 'years'}`;
 }
 
+// Get a softer glow color from category
+function getCategoryGlow(category) {
+  if (!category || !CATEGORIES[category]) return 'rgba(99, 102, 241, 0.3)';
+  const hex = CATEGORIES[category];
+  // Parse hex to rgb
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, 0.35)`;
+}
+
 export default function Bubble({
   id,
   size = 50,
@@ -166,6 +177,8 @@ export default function Bubble({
 
   const diameter = size * 2;
   const relativeTime = getRelativeTime(lastActivity);
+  const glowColor = getCategoryGlow(category);
+  const borderColor = category && CATEGORIES[category] ? CATEGORIES[category] : null;
 
   return (
     <div
@@ -183,27 +196,35 @@ export default function Bubble({
         onPointerDown={handleLabelPointerDown}
         onPointerUp={handleLabelPointerUp}
         className="absolute left-1/2 text-center whitespace-nowrap z-10
-        pointer-events-auto cursor-pointer hover:opacity-80 transition-opacity 
+        pointer-events-auto cursor-pointer hover:opacity-80 transition-opacity
         flex flex-col items-center min-w-[40px] min-h-[20px] justify-center"
         style={{
-          top: diameter / 2 + 10,
+          top: diameter / 2 + 12,
           transform: 'translateX(-50%)'
         }}
       >
         {name && (
-          <div className="text-white font-medium text-sm drop-shadow-lg leading-2">
+          <div className="text-white/90 font-medium text-sm leading-tight tracking-wide"
+            style={{
+              textShadow: '0 1px 8px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.5)'
+            }}
+          >
             {name}
           </div>
         )}
         {relativeTime && (
-          <div className="text-white/60 text-[10px] drop-shadow-lg">
+          <div className="text-white/40 text-[10px] mt-0.5 font-light tracking-wider"
+            style={{
+              textShadow: '0 1px 4px rgba(0,0,0,0.8)'
+            }}
+          >
             {relativeTime}
           </div>
         )}
         {/* Info icon - always visible as tap target */}
         {!name && !relativeTime && (
-          <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-            <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-6 h-6 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/10">
+            <svg className="w-3.5 h-3.5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
@@ -212,15 +233,17 @@ export default function Bubble({
 
       {/* Bubble - tappable for activity */}
       <div
-        className="pointer-events-auto cursor-pointer transition-transform duration-150"
+        className="pointer-events-auto cursor-pointer transition-transform duration-200 ease-out"
         style={{
           width: diameter,
           height: diameter,
-          transform: isPressed ? 'scale(0.95)' : 'scale(1)',
+          transform: isPressed ? 'scale(0.92)' : 'scale(1)',
           borderRadius: '50%',
           overflow: 'hidden',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3), inset 0 -2px 10px rgba(0, 0, 0, 0.1)',
-          border: category && CATEGORIES[category] ? `4px solid ${CATEGORIES[category]}` : 'none'
+          boxShadow: borderColor
+            ? `0 4px 30px ${glowColor}, 0 0 60px ${glowColor}, inset 0 -2px 10px rgba(0, 0, 0, 0.2)`
+            : '0 4px 30px rgba(0, 0, 0, 0.4), 0 0 60px rgba(99, 102, 241, 0.1), inset 0 -2px 10px rgba(0, 0, 0, 0.2)',
+          border: borderColor ? `3px solid ${borderColor}40` : '2px solid rgba(255, 255, 255, 0.08)'
         }}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
@@ -236,20 +259,20 @@ export default function Bubble({
           }}
         />
 
-        {/* Glossy overlay */}
+        {/* Glossy overlay - refined */}
         <div
           className="absolute inset-0"
           style={{
-            background: 'radial-gradient(ellipse 50% 30% at 30% 20%, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.3) 40%, transparent 70%)',
+            background: 'radial-gradient(ellipse 60% 40% at 35% 25%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.15) 40%, transparent 70%)',
             pointerEvents: 'none'
           }}
         />
 
-        {/* Edge highlight */}
+        {/* Edge highlight - subtle rim light */}
         <div
           className="absolute inset-0 rounded-full"
           style={{
-            boxShadow: 'inset 0 0 20px rgba(255, 255, 255, 0.3), inset 0 0 3px rgba(255, 255, 255, 0.5)',
+            boxShadow: 'inset 0 1px 15px rgba(255, 255, 255, 0.15), inset 0 -1px 15px rgba(0, 0, 0, 0.3)',
             pointerEvents: 'none'
           }}
         />
