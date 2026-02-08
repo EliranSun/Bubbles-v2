@@ -1,7 +1,6 @@
 import { useEffect, useRef, useMemo, useCallback, useState } from 'react';
 import Matter from 'matter-js';
 import GeoPattern from 'geopattern';
-import { formatDistanceToNow } from 'date-fns';
 import { useBubbleWorld } from './BubbleWorld';
 import { CATEGORIES } from './BubbleModal';
 
@@ -18,10 +17,30 @@ function hslToHex(h, s, l) {
   return `#${f(0)}${f(8)}${f(4)}`;
 }
 
-// Format relative time using date-fns
+// Format relative time (e.g., "5 minutes", "3 days", "2 weeks")
 function getRelativeTime(timestamp) {
   if (!timestamp) return null;
-  return formatDistanceToNow(timestamp, { addSuffix: true });
+
+  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+  if (seconds < 60) return 'just now';
+
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} ${days === 1 ? 'day' : 'days'}`;
+
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return `${weeks} ${weeks === 1 ? 'week' : 'weeks'}`;
+
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} ${months === 1 ? 'month' : 'months'}`;
+
+  const years = Math.floor(days / 365);
+  return `${years} ${years === 1 ? 'year' : 'years'}`;
 }
 
 export default function Bubble({
@@ -163,19 +182,21 @@ export default function Bubble({
         onClick={() => onOpenModal?.(id)}
         onPointerDown={handleLabelPointerDown}
         onPointerUp={handleLabelPointerUp}
-        className="absolute left-1/2 text-center whitespace-nowrap pointer-events-auto cursor-pointer hover:opacity-80 transition-opacity flex flex-col items-center gap-0.5 min-w-[40px] min-h-[40px] justify-center"
+        className="absolute left-1/2 text-center whitespace-nowrap z-10
+        pointer-events-auto cursor-pointer hover:opacity-80 transition-opacity 
+        flex flex-col items-center min-w-[40px] min-h-[20px] justify-center"
         style={{
-          top: diameter + 4,
+          top: diameter / 2 + 10,
           transform: 'translateX(-50%)'
         }}
       >
         {name && (
-          <div className="text-white font-medium text-sm drop-shadow-lg">
+          <div className="text-white font-medium text-sm drop-shadow-lg leading-2">
             {name}
           </div>
         )}
         {relativeTime && (
-          <div className="text-white/60 text-xs drop-shadow-lg">
+          <div className="text-white/60 text-[10px] drop-shadow-lg">
             {relativeTime}
           </div>
         )}
